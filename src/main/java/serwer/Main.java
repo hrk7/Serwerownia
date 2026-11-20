@@ -1,34 +1,33 @@
 package serwer;
 
-import serwer.model.*;
+import serwer.model.SystemParams;
+import serwer.sim.Experiment;
+import serwer.stats.Summary;
 
 public class Main {
 
-    static boolean check(SystemModel m, int... failed) {
-        boolean[] up = new boolean[m.components().size()];
-        java.util.Arrays.fill(up, true);
-        for (int i : failed) up[i] = false;
-        return m.works(up);
+    static void print(String label, Summary s) {
+        System.out.println(label);
+        System.out.printf("  A: średnia = %.5f, minimum = %.5f%n", s.meanAvailability(), s.minAvailability());
+        System.out.printf("  N: średnie = %.2f%n", s.meanOutages());
+        System.out.printf("  najdłuższa przerwa: średnia = %.1f, maksimum = %d okresów 10 min%n",
+                s.meanLongestOutagePeriods(), s.maxLongestOutagePeriods());
+        System.out.printf("  MTRS = %.2f h, MTBF = %.1f h, MTBSI = %.1f h%n%n",
+                s.mtrsH(), s.mtbfH(), s.mtbsiH());
     }
 
     public static void main(String[] args) {
-        SystemParams p = new SystemParams();          // domyślnie RAID 10
-        SystemModel m = new SystemModel(p);
+        // 1) parametry domyślne, RAID 10
+        SystemParams d = new SystemParams();
+        print("Domyślne, 100 realizacji, seed 42", new Summary(Experiment.runMany(d, 100, 42)));
 
-        System.out.println("Liczba elementów: " + m.components().size());
-        System.out.println("wszystko sprawne:          " + check(m));
-        System.out.println("padł 1 UPS:                " + check(m, 0));
-        System.out.println("padły oba UPS:             " + check(m, 0, 1));
-        System.out.println("padły 2 serwery:           " + check(m, 4, 5));
-        System.out.println("padł 1 serwer:             " + check(m, 4));
-        System.out.println("padł kontroler:            " + check(m, 7));
-        System.out.println("RAID10: dyski 1 i 2 (para):  " + check(m, 8, 9));
-        System.out.println("RAID10: dyski 1 i 3 (różne): " + check(m, 8, 10));
-        System.out.println("RAID10: dyski 1, 3 i 5:      " + check(m, 8, 10, 12));
-
-        p.storage = StorageType.RAID6;
-        SystemModel m6 = new SystemModel(p);
-        System.out.println("RAID6:  dyski 1 i 2:         " + check(m6, 8, 9));
-        System.out.println("RAID6:  dyski 1, 2 i 3:      " + check(m6, 8, 9, 10));
+        // 2) podkręcony kontroler (jak w kroku 3)
+        SystemParams p = new SystemParams();
+        p.ctrlMttf = 500;
+        p.upsMttf = 1e12;
+        p.switchMttf = 1e12;
+        p.serverEta = 1e12;
+        p.diskEta = 1e12;
+        print("Kontroler 500 h, 1000 realizacji, seed 7", new Summary(Experiment.runMany(p, 1000, 7)));
     }
 }
