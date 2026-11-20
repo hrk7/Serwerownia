@@ -3,6 +3,8 @@ package serwer.stats;
 import serwer.sim.RunResult;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public record Summary(List<RunResult> runs) {
 
@@ -55,5 +57,27 @@ public record Summary(List<RunResult> runs) {
 
     public double mtbsiH() {
         return mtbfH() + mtrsH();
+    }
+
+    public double[] availabilities() {
+        return runs.stream().mapToDouble(RunResult::availability).toArray();
+    }
+
+    /** Histogram liczby przerw: liczba przerw -> w ilu realizacjach wystąpiła. */
+    public Map<Integer, Integer> outageCountHistogram() {
+        Map<Integer, Integer> h = new TreeMap<>();
+        for (RunResult r : runs) h.merge(r.outageCount(), 1, Integer::sum);
+        return h;
+    }
+
+    /** Histogram o równych przedziałach; zwraca liczności przedziałów. */
+    public static int[] histogram(double[] values, double lo, double hi, int bins) {
+        int[] counts = new int[bins];
+        double width = (hi - lo) / bins;
+        for (double v : values) {
+            int b = width == 0 ? 0 : (int) ((v - lo) / width);
+            counts[Math.min(Math.max(b, 0), bins - 1)]++;
+        }
+        return counts;
     }
 }

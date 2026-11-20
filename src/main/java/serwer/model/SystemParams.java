@@ -1,5 +1,7 @@
 package serwer.model;
 
+import serwer.sla.SlaLevel;
+
 public class SystemParams implements Cloneable {
 
     public double horizonH = 8760;                 // 1 rok
@@ -34,5 +36,10 @@ public class SystemParams implements Cloneable {
             throw new IllegalArgumentException("RAID 10 wymaga parzystej liczby dysków");
         if (upsRequired > upsCount || switchRequired > switchCount || serversRequired > serverCount)
             throw new IllegalArgumentException("wymagana liczba elementów > liczba elementów");
+    }
+
+    public SystemParams applySla(SlaLevel level) {
+        this.reactionTimeH = level.reactionTimeH();
+        return this;
     }
 }
