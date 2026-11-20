@@ -16,7 +16,7 @@ import java.util.function.ToDoubleFunction;
  * albo (Java 11+):
  *   java SymulacjaSlaRaid10.java [liczba_realizacji]
  */
-public class SymulacjaSlaRaid10 {
+public class SymulacjaCloud {
 
     // =====================================================================
     // KROK 1. PARAMETRY (Tabela 1 i 2 z projektu)
